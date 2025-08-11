@@ -1,4 +1,1 @@
-[submodule "buildtools"]
-	path = buildtools
-	url = https://github.com/Steveice10/buildtools
-	shallow = true
+
