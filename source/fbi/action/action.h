@@ -1,3 +1,4 @@
+#include "../task/uitask.h"
 #pragma once
 
 typedef struct ticket_info_s ticket_info;
@@ -54,3 +55,9 @@ void action_install_url(const char* confirmMessage, const char* urls, const char
                         void (*finishedURL)(void* data, u32 index),
                         void (*finishedAll)(void* data),
                         void (*drawTop)(ui_view* view, void* data, float x1, float y1, float x2, float y2, u32 index));
+
+void action_change_region(linked_list* items, list_item* selected);
+void action_change_language(linked_list* items, list_item* selected);
+void action_use_system_default(linked_list* items, list_item* selected);
+void action_change_locale_dir(config_info* info, bool* populated);
+void action_pick_locale_dir(config_info* info, bool* populated);

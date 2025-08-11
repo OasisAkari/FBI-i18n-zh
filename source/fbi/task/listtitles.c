@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <3ds.h>
 
@@ -9,6 +10,100 @@
 #include "listtitles.h"
 #include "../resources.h"
 #include "../../core/core.h"
+
+
+#include "../locale.h"
+#include "../../core/util.h"
+
+typedef struct locale_entry_list {
+    u64 titleId;
+    bool has_entry;
+    struct locale_entry_list *next;
+} locale_entry_list;
+
+/*
+ * This is a cache of all the titles that have an entry in the locales directory
+ * file at the time of lookup. Gets refreshed when the title list is refreshed.
+ *
+ * This cache prevents a lookup attempt on every title, but looking through it
+ * will be slow as the number of entries increases
+ */
+static locale_entry_list *LocaleList = NULL;
+
+locale_entry_list* find_entry_for_title_id(u64 titleId) {
+    locale_entry_list *ll_next = LocaleList;
+    do {
+        if (ll_next == NULL) return NULL;
+        if (ll_next->titleId == titleId) return ll_next;
+    } while ((ll_next = ll_next->next));
+    return NULL; // This should never trigger because of the do{} while
+}
+
+Result populate_locales() {
+    locale_entry_list *ll_head = LocaleList;
+    locale_entry_list *ll_next;
+
+    // First free locale_list
+    while (ll_head != NULL && ll_head->next != NULL) {
+        ll_next = ll_head->next;
+        free(ll_head);
+        ll_head = ll_next;
+    }
+    LocaleList = NULL;
+    ll_head = LocaleList;
+    ll_next = ll_head;
+
+    char locale_path[PATH_MAX];
+    util_get_locale_dir(locale_path, PATH_MAX);
+
+    FS_Archive sdmc_archive;
+
+    Result res;
+    if (R_FAILED(res = FSUSER_OpenArchive(&sdmc_archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY,"")))) return res;
+    FS_Path* fs_path = util_make_path_utf8(locale_path);
+
+    Handle dir_handle;
+    // FS_Archive *sdmc_archive = util_get_sdmc_archive();
+
+    FSUSER_OpenDirectory(&dir_handle, sdmc_archive, *fs_path); // TODO error handling?
+
+    util_free_path_utf8(fs_path);
+
+    u32 count = 0;
+    FS_DirectoryEntry entry;
+
+    while (R_SUCCEEDED(FSDIR_Read(dir_handle, &count, 1, &entry)) && count > 0) {
+        // Check if the first 16 characters looks like a titleId
+        // This is a fuzzy check but gud nuff
+        char titleId_buf[17] = "";
+        for (int i = 0; i < 16; i++) {
+            if (isxdigit(entry.name[i])) {
+                titleId_buf[i] = entry.name[i];
+            }
+            else {
+                strncpy(titleId_buf, "", 1);
+                break;
+            }
+        }
+        if (strlen(titleId_buf) > 0) {
+            u64 titleId = (u64) strtoll(titleId_buf, NULL, 16);
+            if (ll_next == NULL) {
+                // Initialize the list
+                ll_next = (locale_entry_list*) calloc(1, sizeof(locale_entry_list));
+                LocaleList = ll_next;
+            }
+            else {
+                ll_next->next = (locale_entry_list*) calloc(1, sizeof(locale_entry_list));
+                ll_next = ll_next->next;
+            }
+            ll_next->titleId = titleId;
+            ll_next->has_entry = true;
+            ll_next->next = NULL;
+        }
+    } // while (R_SUCCEEDED(FSDIR_Read(dir_handle, &count, 1, &entry)) && count > 0)
+
+    return FSUSER_CloseArchive(sdmc_archive);
+}
 
 static Result task_populate_titles_add_ctr(populate_titles_data* data, FS_MediaType mediaType, u64 titleId) {
     Result res = 0;
@@ -26,6 +121,16 @@ static Result task_populate_titles_add_ctr(populate_titles_data* data, FS_MediaT
                 titleInfo->installedSize = entry.size;
                 titleInfo->twl = false;
                 titleInfo->hasMeta = false;
+
+                locale_entry_list* locale_entry = find_entry_for_title_id(titleId);
+                if (locale_entry != NULL && locale_entry->has_entry) {
+                    titleInfo->locale = locale_for_title(titleId);
+                }
+                else {
+                    titleInfo->locale = calloc(1, sizeof(Locale));
+                    titleInfo->locale->region = RGN_NONE;
+                    titleInfo->locale->language = LNG_NONE;
+                }
 
                 static const u32 filePath[5] = {0x00000000, 0x00000000, 0x00000002, 0x6E6F6369, 0x00000000};
                 u32 archivePath[4] = {(u32) (titleId & 0xFFFFFFFF), (u32) ((titleId >> 32) & 0xFFFFFFFF), mediaType, 0x00000000};
@@ -132,6 +237,16 @@ static Result task_populate_titles_add_twl(populate_titles_data* data, FS_MediaT
                 titleInfo->installedSize = installedSize;
                 titleInfo->twl = true;
                 titleInfo->hasMeta = false;
+
+                locale_entry_list* locale_entry = find_entry_for_title_id(titleId);
+                if (locale_entry != NULL && locale_entry->has_entry) {
+                    titleInfo->locale = locale_for_title(titleId);
+                }
+                else {
+                    titleInfo->locale = calloc(1, sizeof(Locale));
+                    titleInfo->locale->region = RGN_NONE;
+                    titleInfo->locale->language = LNG_NONE;
+                }
 
                 BNR* bnr = (BNR*) calloc(1, sizeof(BNR));
                 if(bnr != NULL) {
@@ -255,7 +370,7 @@ static Result task_populate_titles_from(populate_titles_data* data, FS_MediaType
 
                         if(data->filter == NULL || data->filter(data->userData, titleIds[i], mediaType)) {
                             bool dsiWare = ((titleIds[i] >> 32) & 0x8000) != 0;
-                            if(dsiWare != useDSiWare) {
+                            if(dsiWare) {
                                 continue;
                             }
 
@@ -270,7 +385,7 @@ static Result task_populate_titles_from(populate_titles_data* data, FS_MediaType
             }
         }
     } else {
-        res = task_populate_titles_add_twl(data, mediaType, 0);
+//        res = task_populate_titles_add_twl(data, mediaType, 0);
     }
 
     return res;
@@ -283,9 +398,9 @@ static void task_populate_titles_thread(void* arg) {
 
     if(R_SUCCEEDED(res = task_populate_titles_from(data, MEDIATYPE_GAME_CARD, false))) {
         if(R_SUCCEEDED(res = task_populate_titles_from(data, MEDIATYPE_SD, false))) {
-            if(R_SUCCEEDED(res = task_populate_titles_from(data, MEDIATYPE_NAND, false))) {
-                res = task_populate_titles_from(data, MEDIATYPE_NAND, true);
-            }
+//            if(R_SUCCEEDED(res = task_populate_titles_from(data, MEDIATYPE_NAND, false))) {
+//                res = task_populate_titles_from(data, MEDIATYPE_NAND, true);
+//            }
         }
     }
 
@@ -334,6 +449,7 @@ Result task_populate_titles(populate_titles_data* data) {
     }
 
     task_clear_titles(data->items);
+    populate_locales();
 
     data->finished = false;
     data->result = 0;

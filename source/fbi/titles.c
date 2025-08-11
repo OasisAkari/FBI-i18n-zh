@@ -23,6 +23,10 @@ static list_item import_secure_value = {"导入安全值", COLOR_TEXT, action_im
 static list_item export_secure_value = {"导出安全值", COLOR_TEXT, action_export_secure_value};
 static list_item delete_secure_value = {"删除安全值", COLOR_TEXT, action_delete_secure_value};
 
+static list_item change_region = {"设置区域", COLOR_TEXT, action_change_region};
+static list_item change_language = {"设置语言", COLOR_TEXT, action_change_language};
+static list_item use_system_default = {"使用系统初始设置", COLOR_TEXT, action_use_system_default};
+
 typedef struct {
     populate_titles_data populateData;
 
@@ -60,45 +64,48 @@ static void titles_action_update(ui_view* view, void* data, linked_list* items, 
     if(selected != NULL && selected->data != NULL && (selectedTouched || (hidKeysDown() & KEY_A))) {
         void(*action)(linked_list*, list_item*) = (void(*)(linked_list*, list_item*)) selected->data;
 
-        ui_pop();
-        list_destroy(view);
+//        ui_pop();
+//        list_destroy(view);
 
         action(actionData->items, actionData->selected);
 
-        free(data);
+//        free(data);
 
         return;
     }
 
     if(linked_list_size(items) == 0) {
-        linked_list_add(items, &launch_title);
-
-        title_info* info = (title_info*) actionData->selected->data;
-
-        if(info->mediaType != MEDIATYPE_GAME_CARD) {
-            linked_list_add(items, &delete_title);
-            linked_list_add(items, &delete_title_ticket);
-        }
-
-        if(!info->twl) {
-            linked_list_add(items, &extract_smdh);
-
-            if(info->mediaType != MEDIATYPE_GAME_CARD) {
-                linked_list_add(items, &import_seed);
-            }
-
-            linked_list_add(items, &browse_save_data);
-
-            if(info->mediaType != MEDIATYPE_GAME_CARD) {
-                linked_list_add(items, &import_secure_value);
-                linked_list_add(items, &export_secure_value);
-                linked_list_add(items, &delete_secure_value);
-            }
-        } else if(info->mediaType == MEDIATYPE_GAME_CARD) {
-            linked_list_add(items, &import_save_data);
-            linked_list_add(items, &export_save_data);
-            linked_list_add(items, &erase_save_data);
-        }
+//        linked_list_add(items, &launch_title);
+//
+//        title_info* info = (title_info*) actionData->selected->data;
+//
+//        if(info->mediaType != MEDIATYPE_GAME_CARD) {
+//            linked_list_add(items, &delete_title);
+//            linked_list_add(items, &delete_title_ticket);
+//        }
+//
+//        if(!info->twl) {
+//            linked_list_add(items, &extract_smdh);
+//
+//            if(info->mediaType != MEDIATYPE_GAME_CARD) {
+//                linked_list_add(items, &import_seed);
+//            }
+//
+//            linked_list_add(items, &browse_save_data);
+//
+//            if(info->mediaType != MEDIATYPE_GAME_CARD) {
+//                linked_list_add(items, &import_secure_value);
+//                linked_list_add(items, &export_secure_value);
+//                linked_list_add(items, &delete_secure_value);
+//            }
+//        } else if(info->mediaType == MEDIATYPE_GAME_CARD) {
+//            linked_list_add(items, &import_save_data);
+//            linked_list_add(items, &export_save_data);
+//            linked_list_add(items, &erase_save_data);
+//        }
+    linked_list_add(items, &change_language);
+    linked_list_add(items, &change_region);
+    linked_list_add(items, &use_system_default);
     }
 }
 
@@ -198,22 +205,22 @@ static void titles_draw_top(ui_view* view, void* data, float x1, float y1, float
 static void titles_update(ui_view* view, void* data, linked_list* items, list_item* selected, bool selectedTouched) {
     titles_data* listData = (titles_data*) data;
 
-    if(hidKeysDown() & KEY_B) {
-        if(!listData->populateData.finished) {
-            svcSignalEvent(listData->populateData.cancelEvent);
-            while(!listData->populateData.finished) {
-                svcSleepThread(1000000);
-            }
-        }
-
-        ui_pop();
-
-        task_clear_titles(items);
-        list_destroy(view);
-
-        free(listData);
-        return;
-    }
+//    if(hidKeysDown() & KEY_B) {
+//        if(!listData->populateData.finished) {
+//            svcSignalEvent(listData->populateData.cancelEvent);
+//            while(!listData->populateData.finished) {
+//                svcSleepThread(1000000);
+//            }
+//        }
+//
+//        ui_pop();
+//
+//        task_clear_titles(items);
+//        list_destroy(view);
+//
+//        free(listData);
+//        return;
+//    }
 
     if(hidKeysDown() & KEY_SELECT) {
         titles_options_open(listData);
@@ -330,5 +337,5 @@ void titles_open() {
     data->sortByName = true;
     data->sortBySize = false;
 
-    list_display("应用", "A: 选择, B: 返回, X: 刷新, SELECT: 选项", data, titles_update, titles_draw_top);
+    list_display("应用", "A: 选择, X: 刷新, SELECT: 选项", data, titles_update, titles_draw_top);
 }

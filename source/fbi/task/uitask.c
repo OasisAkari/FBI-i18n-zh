@@ -6,6 +6,7 @@
 #include "uitask.h"
 #include "../resources.h"
 #include "../../core/core.h"
+#include "../locale.h"
 
 void task_draw_meta_info(ui_view* view, void* data, float x1, float y1, float x2, float y2) {
     meta_info* info = (meta_info*) data;
@@ -246,15 +247,19 @@ void task_draw_title_info(ui_view* view, void* data, float x1, float y1, float x
              "应用 ID: %016llX\n"
                      "位置: %s\n"
                      "版本: %hu (%d.%d.%d)\n"
-                     "产品代码: %s\n"
-                     "区域: %s\n"
-                     "大小: %.2f %s",
+//                     "产品代码: %s\n"
+//                     "区域: %s\n"
+//                     "大小: %.2f %s\n",
+                     "设定的语言：%s\n"
+                     "设定的区域：%s",
              info->titleId,
              info->mediaType == MEDIATYPE_NAND ? "NAND" : info->mediaType == MEDIATYPE_SD ? "SD 卡" : "游戏卡带",
              info->version, (info->version >> 10) & 0x3F, (info->version >> 4) & 0x3F, info->version & 0xF,
-             info->productCode,
-             regionString,
-             ui_get_display_size(info->installedSize), ui_get_display_size_units(info->installedSize));
+//             info->productCode,
+//             regionString,
+//             ui_get_display_size(info->installedSize),
+             language_to_string_display(info->locale->language),
+             region_to_string_display(info->locale->region));
 
     float infoWidth;
     screen_get_string_size(&infoWidth, NULL, infoText, 0.5f, 0.5f);

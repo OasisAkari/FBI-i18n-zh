@@ -1,4 +1,5 @@
 #pragma once
+#include "../locale.h"
 
 typedef struct linked_list_s linked_list;
 typedef struct list_item_s list_item;
@@ -12,6 +13,7 @@ typedef struct title_info_s {
     bool twl;
     bool hasMeta;
     meta_info meta;
+    Locale* locale;
 } title_info;
 
 typedef struct populate_titles_data_s {
