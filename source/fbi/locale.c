@@ -20,13 +20,13 @@ Region region_from_string(char* string) {
 
 Region region_from_string_display(char* string) {
     return
-            strcmp(string, "日版（JPN）") == 0 ? JPN :
-            strcmp(string, "美版（USA）") == 0 ? USA :
-            strcmp(string, "欧版（EUR）") == 0 ? EUR :
-            strcmp(string, "澳版（AUS）") == 0 ? AUS :
-            strcmp(string, "神游版（CHN）") == 0 ? CHN :
-            strcmp(string, "韩版（KOR）") == 0 ? KOR :
-            strcmp(string, "港台版（TWN）") == 0 ? TWN :
+            strcmp(string, "日本（JPN）") == 0 ? JPN :
+            strcmp(string, "北美（USA）") == 0 ? USA :
+            strcmp(string, "欧洲（EUR）") == 0 ? EUR :
+            strcmp(string, "澳大利亚（AUS）") == 0 ? AUS :
+            strcmp(string, "中国大陆（CHN）") == 0 ? CHN :
+            strcmp(string, "韩国（KOR）") == 0 ? KOR :
+            strcmp(string, "港台地区（TWN）") == 0 ? TWN :
             RGN_NONE;
 }
 
@@ -67,7 +67,7 @@ Language language_from_string_display(char* string) {
 
 static const char* _Region_Strings[] = { "JPN", "USA", "EUR", "AUS", "CHN", "KOR", "TWN" };
 
-static const char* _Region_Strings_Display[] = { "日版（JPN）", "美版（USA）", "欧版（EUR）", "澳版（AUS）", "神游版（CHN）", "韩版（KOR）", "港台版（TWN）" };
+static const char* _Region_Strings_Display[] = { "日本（JPN）", "北美（USA）", "欧洲（EUR）", "澳大利亚（AUS）", "中国大陆（CHN）", "韩国（KOR）", "港台地区（TWN）" };
 
 
 const char* region_to_string(Region region) {
