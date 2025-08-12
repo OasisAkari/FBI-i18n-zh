@@ -257,8 +257,8 @@ void task_draw_title_info(ui_view* view, void* data, float x1, float y1, float x
              "应用 ID: %016llX\n"
                      "设定的语言：%s\n"
                      "设定的区域：%s\n"
-             "设定的国家/地区：%s\n"
-             "设定的详细地区：%s",
+             "设定的国家/地区代码：%s\n"
+             "设定的详细地区代码：%s",
              info->titleId,
              language_to_string_display(info->locale->language),
              region_to_string_display(info->locale->region),
