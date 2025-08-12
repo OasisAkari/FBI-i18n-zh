@@ -23,11 +23,11 @@ static list_item import_secure_value = {"导入安全值", COLOR_TEXT, action_im
 static list_item export_secure_value = {"导出安全值", COLOR_TEXT, action_export_secure_value};
 static list_item delete_secure_value = {"删除安全值", COLOR_TEXT, action_delete_secure_value};
 
-static list_item change_region = {"设置区域", COLOR_TEXT, action_change_region};
-static list_item change_language = {"设置语言", COLOR_TEXT, action_change_language};
-static list_item change_country = {"设置国家/地区", COLOR_TEXT, action_change_country};
-static list_item change_state = {"设置详细地区", COLOR_TEXT, action_change_state};
-static list_item use_system_default = {"使用系统初始设置", COLOR_TEXT, action_use_system_default};
+static list_item change_region = {"设定区域", COLOR_TEXT, action_change_region};
+static list_item change_language = {"设定语言", COLOR_TEXT, action_change_language};
+static list_item change_country = {"设定国家/地区", COLOR_TEXT, action_change_country};
+static list_item change_state = {"设定详细地区", COLOR_TEXT, action_change_state};
+static list_item use_system_default = {"使用系统初始设定", COLOR_TEXT, action_use_system_default};
 
 typedef struct {
     populate_titles_data populateData;

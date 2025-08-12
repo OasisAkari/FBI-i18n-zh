@@ -29,14 +29,14 @@ static void action_set_country(country_data* data, char* name, bool populated) {
 
         info->locale = locale_for_title(info->titleId);
 
-        char* template = "Country has been set to %s.";
+        char* template = "应用的国家/地区已被设定至\n%s";
         char* message = calloc(strlen(template) + strlen(name), sizeof(char));
         snprintf(message, strlen(template) + strlen(name), template, name);
-        prompt_display_notify("Set Country", message, COLOR_TEXT, NULL, NULL, NULL);
+        prompt_display_notify("设定国家/地区", message, COLOR_TEXT, NULL, NULL, NULL);
     }
     else {
         // error_display_res(data, ui_draw_title_info, false, "Failed to set country (does locales directory exist?)");
-        error_display(data, NULL, "Failed to set country\n(does locales directory exist?)");
+        error_display(data, NULL, "设定国家/地区失败\n（目标文件夹是否存在？）");
     }
 }
 
@@ -91,7 +91,7 @@ void action_change_country(linked_list* items, list_item* selected) {
     title_info* info = selected->data;
     Region region = region_for_title(info->titleId);
     if (region == RGN_NONE){
-        error_display(NULL, NULL, "Please select a region first.");
+        error_display(NULL, NULL, "请先设定区域。");
         return;
     }
     char* region_str = region_map((char*)region_to_string(region));
@@ -110,5 +110,5 @@ void action_change_country(linked_list* items, list_item* selected) {
     data->selected = selected;
     data->populated = true;
     data->count = country_count;
-    list_display_old("Select Country", "A: Select, B: Return", data, country_update, country_draw_top);
+    list_display_old("设定国家/地区", "A：选择，B：返回", data, country_update, country_draw_top);
 }

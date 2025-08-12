@@ -31,14 +31,14 @@ static void action_set_state(state_data* data, char* name, bool populated) {
 
         info->locale = locale_for_title(info->titleId);
 
-        char* template = "state has been set to %s.";
+        char* template = "应用的详细地区已被设定至\n%s";
         char* message = calloc(strlen(template) + strlen(name), sizeof(char));
         snprintf(message, strlen(template) + strlen(name), template, name);
-        prompt_display_notify("Set state", message, COLOR_TEXT, NULL, NULL, NULL);
+        prompt_display_notify("设定详细地区", message, COLOR_TEXT, NULL, NULL, NULL);
     }
     else {
         // error_display_res(data, ui_draw_title_info, false, "Failed to set state (does locales directory exist?)");
-        error_display(data, NULL, "Failed to set state\n(does locales directory exist?)");
+        error_display(data, NULL, "设定详细地区失败\n（目标文件夹是否存在？）");
     }
 }
 
@@ -93,13 +93,13 @@ void action_change_state(linked_list* items, list_item* selected) {
     title_info* info = selected->data;
     char* country = country_for_title(info->titleId);
     if (strlen(country) == 0){
-        error_display(NULL, NULL, "Please select a country first.");
+        error_display(NULL, NULL, "请先设定国家/地区。");
         return;
     }
     char* filtered_states[128] = {};
     int state_count = listStates(country, filtered_states);
     if (state_count == 0){
-        error_display(NULL, NULL, "No states information available\n for the selected country.");
+        error_display(NULL, NULL, "选定的国家/地区没有可用的详细地区设置信息。");
         return;
     }
 
@@ -115,5 +115,5 @@ void action_change_state(linked_list* items, list_item* selected) {
     data->selected = selected;
     data->populated = true;
     data->count = state_count;
-    list_display_old("Select state", "A: Select, B: Return", data, state_update, state_draw_top);
+    list_display_old("设定详细地区", "A：选择，B：返回", data, state_update, state_draw_top);
 }

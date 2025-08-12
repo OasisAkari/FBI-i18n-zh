@@ -65,6 +65,6 @@ void action_use_system_default(linked_list* items, list_item* selected) {
 
     data->items = items;
     data->selected = selected;
-    prompt_display_yes_no("确认", "是否确定重置这个应用的区域和语言设置？", COLOR_TEXT, data,
+    prompt_display_yes_no("确认", "是否确定重置这个应用的区域和语言设定？", COLOR_TEXT, data,
                           action_remove_data_draw_top, action_remove_locale_file);
 }

@@ -7,7 +7,7 @@
 #define TEXTURE_SELECTION_OVERLAY 12
 
 typedef struct {
-    char name[NAME_MAX];
+    char name[512];
     u32 color;
     void* data;
 } list_item_old;

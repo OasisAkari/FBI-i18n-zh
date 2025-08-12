@@ -27,13 +27,13 @@ static void action_set_language(language_data* data, char* name, bool populated)
         // Refresh locale info
         info->locale = locale_for_title(info->titleId);
 
-        char* template = "应用的语言已被设置至 %s。";
+        char* template = "应用的语言已被设定至\n%s";
         char* message = calloc(strlen(template) + strlen(name), sizeof(char));
         snprintf(message, strlen(template) + strlen(name), template, name);
-        prompt_display_notify("设置语言", message, COLOR_TEXT, NULL, NULL, NULL);
+        prompt_display_notify("设定语言", message, COLOR_TEXT, NULL, NULL, NULL);
     }
     else {
-        error_display(data, NULL, "设置语言失败\n（目标文件夹是否存在？）");
+        error_display(data, NULL, "设定语言失败\n（目标文件夹是否存在？）");
     }
 }
 
@@ -95,5 +95,5 @@ void action_change_language(linked_list* items, list_item* selected) {
     data->selected = selected;
     data->populated = true;
     data->count = LNG_MAX;
-    list_display_old("设置语言", "A：选择，B：返回", data, language_update, language_draw_top);
+    list_display_old("设定语言", "A：选择，B：返回", data, language_update, language_draw_top);
 }
