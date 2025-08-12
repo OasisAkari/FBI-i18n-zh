@@ -1,5 +1,7 @@
 #pragma once
 #include <3ds/services/cfgu.h>
+#include "country.h"
+#include "states.h"
 
 // These align with CFG_Region in 3ds/services/cfgu.h
 typedef enum {
@@ -37,6 +39,8 @@ typedef struct {
     char* title_id_str;
     Region region;
     Language language;
+    char* country;
+    char* state;
 } Locale;
 
 Region region_from_string(char* string);
@@ -55,7 +59,11 @@ char* locale_path_for_title(u64 titleId);
 Locale* locale_for_title(u64 titleId);
 Region region_for_title(u64 titleId);
 Language language_for_title(u64 titleId);
+char* country_for_title(u64 titleId);
+char* state_for_title(u64 titleId);
 
-Result set_region_and_language_for_title(u64 titleId, Region region, Language language);
+Result set_region_language_country_state_for_title(u64 titleId, Region region, Language language, const char* country, char* state);
 Result set_region_for_title(u64 titleId, Region region);
 Result set_language_for_title(u64 titleId, Language language);
+Result set_country_for_title(u64 titleId, const char* country);
+Result set_state_for_title(u64 titleId, char* state);

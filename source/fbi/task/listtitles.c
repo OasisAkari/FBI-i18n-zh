@@ -130,6 +130,8 @@ static Result task_populate_titles_add_ctr(populate_titles_data* data, FS_MediaT
                     titleInfo->locale = calloc(1, sizeof(Locale));
                     titleInfo->locale->region = RGN_NONE;
                     titleInfo->locale->language = LNG_NONE;
+                    titleInfo->locale->country = "";
+                    titleInfo->locale->state = "";
                 }
 
                 static const u32 filePath[5] = {0x00000000, 0x00000000, 0x00000002, 0x6E6F6369, 0x00000000};
@@ -246,6 +248,8 @@ static Result task_populate_titles_add_twl(populate_titles_data* data, FS_MediaT
                     titleInfo->locale = calloc(1, sizeof(Locale));
                     titleInfo->locale->region = RGN_NONE;
                     titleInfo->locale->language = LNG_NONE;
+                    titleInfo->locale->country = "";
+                    titleInfo->locale->state = "";
                 }
 
                 BNR* bnr = (BNR*) calloc(1, sizeof(BNR));

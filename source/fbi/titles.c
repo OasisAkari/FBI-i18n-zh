@@ -25,6 +25,8 @@ static list_item delete_secure_value = {"删除安全值", COLOR_TEXT, action_de
 
 static list_item change_region = {"设置区域", COLOR_TEXT, action_change_region};
 static list_item change_language = {"设置语言", COLOR_TEXT, action_change_language};
+static list_item change_country = {"设置国家/地区", COLOR_TEXT, action_change_country};
+static list_item change_state = {"设置详细地区", COLOR_TEXT, action_change_state};
 static list_item use_system_default = {"使用系统初始设置", COLOR_TEXT, action_use_system_default};
 
 typedef struct {
@@ -105,6 +107,8 @@ static void titles_action_update(ui_view* view, void* data, linked_list* items, 
 //        }
     linked_list_add(items, &change_language);
     linked_list_add(items, &change_region);
+    linked_list_add(items, &change_country);
+    linked_list_add(items, &change_state);
     linked_list_add(items, &use_system_default);
     }
 }

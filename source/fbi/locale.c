@@ -20,13 +20,13 @@ Region region_from_string(char* string) {
 
 Region region_from_string_display(char* string) {
     return
-            strcmp(string, "日本（JPN）") == 0 ? JPN :
-            strcmp(string, "北美（USA）") == 0 ? USA :
-            strcmp(string, "欧洲（EUR）") == 0 ? EUR :
-            strcmp(string, "澳大利亚（AUS）") == 0 ? AUS :
-            strcmp(string, "中国大陆（CHN）") == 0 ? CHN :
+            strcmp(string, "日版（JPN）") == 0 ? JPN :
+            strcmp(string, "美版（USA）") == 0 ? USA :
+            strcmp(string, "欧版（EUR）") == 0 ? EUR :
+            strcmp(string, "澳版（AUS）") == 0 ? AUS :
+            strcmp(string, "神游版（CHN）") == 0 ? CHN :
             strcmp(string, "韩国（KOR）") == 0 ? KOR :
-            strcmp(string, "港台地区（TWN）") == 0 ? TWN :
+            strcmp(string, "港台版（TWN）") == 0 ? TWN :
             RGN_NONE;
 }
 
@@ -67,7 +67,7 @@ Language language_from_string_display(char* string) {
 
 static const char* _Region_Strings[] = { "JPN", "USA", "EUR", "AUS", "CHN", "KOR", "TWN" };
 
-static const char* _Region_Strings_Display[] = { "日本（JPN）", "北美（USA）", "欧洲（EUR）", "澳大利亚（AUS）", "中国大陆（CHN）", "韩国（KOR）", "港台地区（TWN）" };
+static const char* _Region_Strings_Display[] = { "日版（JPN）", "美版（USA）", "欧版（EUR）", "澳版（AUS）", "神游版（CHN）", "韩国（KOR）", "港台版（TWN）" };
 
 
 const char* region_to_string(Region region) {
@@ -88,7 +88,7 @@ static const char* _Language_Strings_Display[] = { "日语（JP）", "英语（E
 
 const char* language_to_string(Language language) {
     if (language == LNG_NONE || language >= LNG_MAX)
-        return "System Default";
+        return "系统默认";
     return _Language_Strings[language];
 }
 
@@ -122,6 +122,8 @@ Locale* locale_for_title(u64 titleId) {
     // Defaults
     locale_info->region = RGN_NONE;
     locale_info->language = LNG_NONE;
+    locale_info->country = "";
+    locale_info->state = "";
 
     Result res;
     if (R_FAILED(res = FSUSER_OpenArchive(&sdmc_archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY,"")))) {
@@ -137,9 +139,9 @@ Locale* locale_for_title(u64 titleId) {
         return locale_info;
     }
 
-    char* buffer = (char*) calloc(7, sizeof(char)); // ex., "JPN JP\0"
+    char* buffer = (char*) calloc(13, sizeof(char)); // ex., "JPN JP\0"
     u32 bytes_read;
-    FSFILE_Read(handle, &bytes_read, 0, buffer, 6);
+    FSFILE_Read(handle, &bytes_read, 0, buffer, 12);
     FSFILE_Close(handle);
 
     util_free_path_utf8(fs_path);
@@ -150,6 +152,8 @@ Locale* locale_for_title(u64 titleId) {
     if (bytes_read < 6) { // we need at least "JPN JP"
         locale_info->region = RGN_NONE;
         locale_info->language = LNG_NONE;
+        locale_info->country = "";
+        locale_info->state = "";
         return locale_info;
     }
 
@@ -157,13 +161,25 @@ Locale* locale_for_title(u64 titleId) {
 
     char* region_str = (char*) calloc(4, sizeof(char));
     char* lang_str = (char*) calloc(3, sizeof(char));
-    if (sscanf(buffer, "%3s %2s", region_str, lang_str) < 2) {
-        locale_info->region = RGN_NONE;
-        locale_info->language = LNG_NONE;
-    }
-    else {
+    char* country_str = (char*) calloc(3, sizeof(char));
+    char* state_str = (char*) calloc(3, sizeof(char));
+    if (sscanf(buffer, "%3s %2s %2s %2s", region_str, lang_str, country_str, state_str) == 4){
         locale_info->region = region_from_string(region_str);
         locale_info->language = language_from_string(lang_str);
+        locale_info->country = country_str;
+        locale_info->state = state_str;
+
+    } else if (sscanf(buffer, "%3s %2s %2s", region_str, lang_str, country_str) == 3){
+        locale_info->region = region_from_string(region_str);
+        locale_info->language = language_from_string(lang_str);
+        locale_info->country = country_str;
+    } else if (sscanf(buffer, "%3s %2s", region_str, lang_str) == 2) {
+        locale_info->region = region_from_string(region_str);
+        locale_info->language = language_from_string(lang_str);
+    }
+    else {
+        locale_info->region = RGN_NONE;
+        locale_info->language = LNG_NONE;
     }
 
     return locale_info;
@@ -177,6 +193,16 @@ Region region_for_title(u64 titleId) {
 Language language_for_title(u64 titleId) {
     Locale* locale = locale_for_title(titleId);
     return locale->language;
+}
+
+char* country_for_title(u64 titleId){
+    Locale* locale = locale_for_title(titleId);
+    return locale->country;
+}
+
+char* state_for_title(u64 titleId){
+    Locale* locale = locale_for_title(titleId);
+    return locale->state;
 }
 
 Result _set_locale_for_title(u64 titleId, Locale* locale) {
@@ -210,29 +236,58 @@ Result _set_locale_for_title(u64 titleId, Locale* locale) {
     util_ensure_dir(&sdmc_archive, deepest_path);
 
     Handle handle;
+    FSUSER_DeleteFile(sdmc_archive, *fs_path);
     // If this fails, probably means locale directory does not exist
     // TODO create locale directory if not exist
     if(R_SUCCEEDED(
         FSUSER_OpenFileDirectly(&handle, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY,""), *fs_path, FS_OPEN_WRITE | FS_OPEN_CREATE, 0)
     )) {
-        char* buffer = (char*) calloc(8, sizeof(char)); // ex: "JPN JP\0"
-        snprintf(buffer, 64, "%s %s\n", region_to_string(locale->region),
-                language_to_string(locale->language));
-        buffer[7] = '\0';
-
+        char* country = locale->country;
+        char* state = locale->state;
+        char* region_s = region_to_string(locale->region);
+        char* language_s = language_to_string(locale->language);
+        int s_len = strlen(region_s) + strlen(language_s) + strlen(country) + strlen(state);
         u32 bytes_written;
-        FSFILE_Write(handle, &bytes_written, 0, buffer, 6, FS_WRITE_FLUSH);
-        FSFILE_Close(handle);
+        if (s_len == 5){
+            char* buffer = (char*) calloc(8, sizeof(char)); // ex: "JPN JP\0"
+            snprintf(buffer, 64, "%s %s\n",
+                     region_to_string(locale->region),
+                     language_to_string(locale->language));
+            buffer[7] = '\0';
+            FSFILE_Write(handle, &bytes_written, 0, buffer, 6, FS_WRITE_FLUSH);
+        }
+        else if (s_len == 7){
+            char* buffer = (char*) calloc(11, sizeof(char)); // ex: "JPN JP JP\0"
+            snprintf(buffer, 64, "%s %s %s\n",
+                     region_s,
+                     language_s,
+                     country
+            );
+            buffer[10] = '\0';
+            FSFILE_Write(handle, &bytes_written, 0, buffer, 9, FS_WRITE_FLUSH);
+        } else if  (s_len == 9){
+            char* buffer = (char*) calloc(14, sizeof(char)); // ex: "JPN JP JP 00\0"
+            snprintf(buffer, 64, "%s %s %s %s\n",
+                     region_s,
+                     language_s,
+                     country,
+                     state
+            );
+            buffer[13] = '\0';
+            FSFILE_Write(handle, &bytes_written, 0, buffer, 12, FS_WRITE_FLUSH);
 
+        }
+
+        FSFILE_Close(handle);
         util_free_path_utf8(fs_path);
         FSUSER_CloseArchive(sdmc_archive);
 
-        return bytes_written == 6 ? true : -1;
+        return bytes_written >= 6 ? true : -1;
     }
     return -1;
 }
 
-Result set_region_and_language_for_title(u64 titleId, Region region, Language language) {
+Result set_region_language_country_state_for_title(u64 titleId, Region region, Language language, const char* country, char* state) {
     Locale* locale = locale_for_title(titleId);
 
     Result result;
@@ -251,17 +306,34 @@ Result set_region_and_language_for_title(u64 titleId, Region region, Language la
 
     locale->region = region;
     locale->language = language;
+    locale->country = country;
+    locale->state = state;
     return _set_locale_for_title(titleId, locale);
 }
 
 Result set_region_for_title(u64 titleId, Region region) {
     Locale* locale = locale_for_title(titleId);
+    locale->country = "";
+    locale->state = "";
 
-    return set_region_and_language_for_title(titleId, region, locale->language);
+    return set_region_language_country_state_for_title(titleId, region, locale->language, locale->country, locale->state);
 }
 
 Result set_language_for_title(u64 titleId, Language language) {
     Locale* locale = locale_for_title(titleId);
 
-    return set_region_and_language_for_title(titleId, locale->region, language);
+    return set_region_language_country_state_for_title(titleId, locale->region, language, locale->country, locale->state);
+}
+
+Result set_country_for_title(u64 titleId, const char* country) {
+    Locale* locale = locale_for_title(titleId);
+    locale->state = "";
+
+    return set_region_language_country_state_for_title(titleId, locale->region, locale->language, country, locale->state);
+}
+
+Result set_state_for_title(u64 titleId, char* state) {
+    Locale* locale = locale_for_title(titleId);
+
+    return set_region_language_country_state_for_title(titleId, locale->region, locale->language, locale->country, state);
 }

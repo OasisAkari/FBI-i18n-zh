@@ -61,3 +61,5 @@ void action_change_language(linked_list* items, list_item* selected);
 void action_use_system_default(linked_list* items, list_item* selected);
 void action_change_locale_dir(config_info* info, bool* populated);
 void action_pick_locale_dir(config_info* info, bool* populated);
+void action_change_country(linked_list* items, list_item* selected);
+void action_change_state(linked_list* items, list_item* selected);
